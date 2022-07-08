@@ -16,7 +16,7 @@
   <body>
     <!-- Create a canvas for our work area -->
     <div style="padding-left: 20px">
-      <canvas id="canvas1" ></canvas>
+      <canvas id="canvas1" style="border: 1px solid #000000"></canvas>
     </div>
     <br />
 
@@ -58,7 +58,7 @@
     <a id="outputlink" href=""></a>
     <br />
     <br />
-    <div style="position:absolute; top: 10px; left : 700px">
+    <div style="position:absolute; top: 8px; left : 700px; height:500px; border: 1px solid #000000" >
     <image id="output" src=""  />
     </div>
 
@@ -76,7 +76,7 @@
       var canvas = new fabric.Canvas("canvas1");
       canvas.setZoom(1);
       canvas.setWidth(627 * canvas.getZoom());
-      canvas.setHeight(627 * canvas.getZoom());
+      canvas.setHeight(500 * canvas.getZoom());
 
       function checkLocation() {
         document.getElementById("output").src = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921"
