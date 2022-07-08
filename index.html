@@ -1,109 +1,167 @@
 <html>
-<head>
-  <script src="js/jquery.min.js"></script>
-  <script src="js/fabric.min.js"></script>
-  <style>
-  
-  </style>
-</head>
-<body>
-  <!-- Create a canvas for our work area -->
-  <canvas id="c" width="500" height="500" style="border:1px solid #000000;" ></canvas>
-  <!-- We can create buttons to manipulate an object in the canvas -->
-  <input id="buttonR" type="button" value="Shift Right">
-  <input id="buttonL" type="button" value="Shift Left">
-  <input id="sepia" type="button" value="Sepia-fy">
-  <input id="rotate" type="button" value="Rotate Current Object"> 
-  
-  <br>
-  <input id="image1" type="text" value="https://res.cloudinary.com/imageeditor/image/upload/v1657257783/cld-sample-3.jpg">
+  <head>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/fabric.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+      type="text/javascript"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/cloudinary-jquery/2.12.3/cloudinary-jquery.min.js"
+      type="text/javascript"
+    ></script>
 
-  <br>
-  <input id="image2" type="text" value="https://res.cloudinary.com/imageeditor/image/upload/v1657257782/cld-sample.jpg">
-  <br>
-  <input id="text1" type="text" value="This Zoots !">
-  <br>
-  <input id="checkLocation" type="button" value="Check Location" rows="4" cols="50" onClick="checkLocation()">
+    <style></style>
+  </head>
+  <body>
+    <!-- Create a canvas for our work area -->
+    <div style="padding-left: 20px">
+      <canvas id="canvas1" style="border: 1px solid #000000"></canvas>
+    </div>
+    <br />
 
-  <br>
-  <textarea id="coordinates" type = "textarea" cols="40" rows="5" >
-  </textarea>
+    <br />
+    <input id="image1" type="text" value="office-background_ol9cdy" />
 
-  <!-- Create a new canvas with Fabric and add objects to it -->
-  <script>
-  document.getElementById("coordinates").value = ""
-    var canvas = new fabric.Canvas('c');
-    function checkLocation(){
-      value = ""
-      canvas.forEachObject(function(obj){
-        value += (obj.left + "," + obj.top) +"\n"; 
+    <br />
+    <input
+      id="image2"
+      type="text"
+      value="https://res.cloudinary.com/imageeditor/image/upload/v1657257782/cld-sample.jpg"
+    />
+    <br />
+    <input
+      id="text1"
+      type="text"
+      value="This Zoots !"
+    />
+    <br />
+    <input
+      id="checkLocation"
+      type="button"
+      value="Check Location"
+      rows="4"
+      cols="50"
+      onClick="checkLocation()"
+    />
+
+    <br />
+    <textarea id="coordinates" type="textarea" cols="40" rows="5"> </textarea>
+    <br />
+    <br />
+    <a id="outputlink" href=""></a>
+    <br />
+    <br />
+    <div style="position:absolute; top: 10px; left : 700px">
+    <image id="output" src=""  />
+    </div>
+
+    <!-- Create a new canvas with Fabric and add objects to it -->
+    <script>
+      $.cloudinary.config({ cloud_name: "imageeditor", secure: true });
+
+      document.getElementById("coordinates").value = "";
+      background_image = $.cloudinary.image(
+        document.getElementById("image1").value
+      )[0];
+
+      const myImageUrl = background_image.src;
+
+      var canvas = new fabric.Canvas("canvas1");
+      canvas.setZoom(1);
+      canvas.setWidth(627 * canvas.getZoom());
+      canvas.setHeight(627 * canvas.getZoom());
+
+      function checkLocation() {
+        document.getElementById("output").src = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921"
+        value = "";
+        canvas.forEachObject(function (obj) {
+          value += parseInt(obj.left) + "," + parseInt(obj.top) + "\n";
+        });
+        document.getElementById("coordinates").value = value;
+
+        // Process output image
+
+        output_image_url = $.cloudinary
+          .imageTag(document.getElementById("image1").value)
+          .transformation()
+          .height(parseInt(canvas.getObjects()[0].cacheHeight/2))
+          .width(parseInt(canvas.getObjects()[0].cacheWidth/2))
+          .gravity("north_west")
+          .crop("scale")
+          .chain()
+          .overlay(
+            new cloudinary.TextLayer()
+              .fontFamily("Arial")
+              .fontSize(40)
+              .text(document.getElementById("text1").value)
+          )
+          .color("black")
+          .gravity("north_west")
+          .x(parseInt(canvas.getObjects()[2].left))
+          .y(parseInt(canvas.getObjects()[2].top))
+          .chain()
+          .overlay(
+            new cloudinary.FetchLayer().url(
+                  document.getElementById("image2").value
+                )
+          )
+          .x(parseInt(canvas.getObjects()[1].left))
+          .y(parseInt(canvas.getObjects()[1].top))
+          .height(parseInt(canvas.getObjects()[1].cacheHeight/2))
+          .width(parseInt(canvas.getObjects()[1].cacheWidth/2))
+          .gravity("north_west")
+          .crop("scale")
+          .toHtml()
+          .slice(10, -2);
+
+        document.getElementById("output").src = output_image_url;
+        document.getElementById("outputlink").href = output_image_url;
+        document.getElementById("outputlink").textContent = output_image_url;
+      }
+
+      // Add our image from URL onto canvas
+      fabric.Image.fromURL(myImageUrl, function (aImg) {
+        // Scale down our image size
+        aImg.set({
+          left: 0,
+          top: 0,
         
+        });
+        aImg.scaleToWidth(canvas.width);
+        //aImg.scale((1/canvas.getZoom()));
+        canvas.add(aImg);
       });
-      document.getElementById("coordinates").value  = value
-    }
-    
 
-    // Add our image from URL onto canvas
-    fabric.Image.fromURL(document.getElementById("image1").value, function(aImg) {
-      // Scale down our image size
-      aImg.scaleToWidth(400);
-      canvas.add(aImg);
-    });
+      // Add our image from URL onto canvas
+      fabric.Image.fromURL(
+        document.getElementById("image2").value,
+        function (aImg) {
+          // Scale down our image size
+          aImg.set({
+            left: 154,
+            top: 273,
+          });
+          aImg.scaleToWidth(200);
+          canvas.add(aImg);
 
-    // Add our image from URL onto canvas
-    fabric.Image.fromURL(document.getElementById("image2").value, function(aImg) {
-      // Scale down our image size
-      aImg.set({
-        left: 50,
-        top: 0
-      });
-      aImg.scaleToWidth(200);
-      canvas.add(aImg);
-      
-      text = new fabric.Text(document.getElementById("text1").value,{ 
-        fontFamily: 'Delicious_500', 
-        left: 100, 
-        top: 100 
-      });
-      
-      canvas.add(text);
-    });
+          text = new fabric.Text(document.getElementById("text1").value, {
+            fontFamily: "Delicious_500",
+            left: 157,
+            top: 433,
+          });
 
-    
+          canvas.add(text);
 
+        }
+      );
 
-    // JQuery to handle button, shifts rect object
-    $("#buttonR").click(function(){
-      // Adds px to the left of rect
-      rect.set('left', rect.get('left') + 10);
-      canvas.renderAll(); // Re-renders canvas
-    });
-    $("#buttonL").click(function(){
-      // Subtracts px to the left of rect
-      rect.set('left', rect.get('left') - 10);
-      canvas.renderAll(); // Re-renders canvas
-    });
+      var canvasModifiedCallback = function() {
+        checkLocation()
+        };
 
-    // Sepia-fies our active object (clicked object)
-    $("#sepia").click(function(){
-      var filter = new fabric.Image.filters.Sepia();
-      var activeObj = canvas.getActiveObject();
-      activeObj.filters.push(filter);
-      activeObj.applyFilters();
-      canvas.renderAll();
-    });
-
-    // Animates our active object with a 360 degree rotation
-    // Our easing type is what allows the object to bounce at the end
-    $("#rotate").click(function(){
-      var activeObj = canvas.getActiveObject();
-      activeObj.animate('angle', '+=360', {
-        onChange: canvas.renderAll.bind(canvas),
-        duration: 2500,
-        easing: fabric.util.ease.easeOutBounce
-      });
-    });
-
-  </script>
-</body>
+      canvas.on('object:moving', canvasModifiedCallback);
+      setTimeout(function() { checkLocation(); }, 1000);
+    </script>
+  </body>
 </html>
