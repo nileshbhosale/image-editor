@@ -22,18 +22,24 @@
   <input id="image2" type="text" value="https://res.cloudinary.com/imageeditor/image/upload/v1657257782/cld-sample.jpg">
   <br>
   <input id="text1" type="text" value="This Zoots !">
+  <br>
+  <input id="checkLocation" type="button" value="Check Location" rows="4" cols="50" onClick="checkLocation()">
 
-  <input id="text1" type="button" value="Check Location" onClick="checkLocation()">
-
+  <br>
+  <textarea id="coordinates" type = "textarea" cols="40" rows="5" >
+  </textarea>
 
   <!-- Create a new canvas with Fabric and add objects to it -->
   <script>
+  document.getElementById("coordinates").value = ""
     var canvas = new fabric.Canvas('c');
     function checkLocation(){
-      console.log("test")
+      value = ""
       canvas.forEachObject(function(obj){
-      console.log(obj.left + "," + obj.top); 
-    });
+        value += (obj.left + "," + obj.top) +"\n"; 
+        
+      });
+      document.getElementById("coordinates").value  = value
     }
     
 
