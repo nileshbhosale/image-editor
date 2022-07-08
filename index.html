@@ -1,0 +1,103 @@
+<html>
+<head>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/fabric.min.js"></script>
+  <style>
+  
+  </style>
+</head>
+<body>
+  <!-- Create a canvas for our work area -->
+  <canvas id="c" width="500" height="500" style="border:1px solid #000000;" ></canvas>
+  <!-- We can create buttons to manipulate an object in the canvas -->
+  <input id="buttonR" type="button" value="Shift Right">
+  <input id="buttonL" type="button" value="Shift Left">
+  <input id="sepia" type="button" value="Sepia-fy">
+  <input id="rotate" type="button" value="Rotate Current Object"> 
+  
+  <br>
+  <input id="image1" type="text" value="https://res.cloudinary.com/imageeditor/image/upload/v1657257783/cld-sample-3.jpg">
+
+  <br>
+  <input id="image2" type="text" value="https://res.cloudinary.com/imageeditor/image/upload/v1657257782/cld-sample.jpg">
+  <br>
+  <input id="text1" type="text" value="This Zoots !">
+
+  <input id="text1" type="button" value="Check Location" onClick="checkLocation()">
+
+
+  <!-- Create a new canvas with Fabric and add objects to it -->
+  <script>
+    var canvas = new fabric.Canvas('c');
+    function checkLocation(){
+      console.log("test")
+      canvas.forEachObject(function(obj){
+      console.log(obj.left + "," + obj.top); 
+    });
+    }
+    
+
+    // Add our image from URL onto canvas
+    fabric.Image.fromURL(document.getElementById("image1").value, function(aImg) {
+      // Scale down our image size
+      aImg.scaleToWidth(400);
+      canvas.add(aImg);
+    });
+
+    // Add our image from URL onto canvas
+    fabric.Image.fromURL(document.getElementById("image2").value, function(aImg) {
+      // Scale down our image size
+      aImg.set({
+        left: 50,
+        top: 0
+      });
+      aImg.scaleToWidth(200);
+      canvas.add(aImg);
+      
+      text = new fabric.Text(document.getElementById("text1").value,{ 
+        fontFamily: 'Delicious_500', 
+        left: 100, 
+        top: 100 
+      });
+      
+      canvas.add(text);
+    });
+
+    
+
+
+    // JQuery to handle button, shifts rect object
+    $("#buttonR").click(function(){
+      // Adds px to the left of rect
+      rect.set('left', rect.get('left') + 10);
+      canvas.renderAll(); // Re-renders canvas
+    });
+    $("#buttonL").click(function(){
+      // Subtracts px to the left of rect
+      rect.set('left', rect.get('left') - 10);
+      canvas.renderAll(); // Re-renders canvas
+    });
+
+    // Sepia-fies our active object (clicked object)
+    $("#sepia").click(function(){
+      var filter = new fabric.Image.filters.Sepia();
+      var activeObj = canvas.getActiveObject();
+      activeObj.filters.push(filter);
+      activeObj.applyFilters();
+      canvas.renderAll();
+    });
+
+    // Animates our active object with a 360 degree rotation
+    // Our easing type is what allows the object to bounce at the end
+    $("#rotate").click(function(){
+      var activeObj = canvas.getActiveObject();
+      activeObj.animate('angle', '+=360', {
+        onChange: canvas.renderAll.bind(canvas),
+        duration: 2500,
+        easing: fabric.util.ease.easeOutBounce
+      });
+    });
+
+  </script>
+</body>
+</html>
