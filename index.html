@@ -10,6 +10,11 @@
       src="https://cdnjs.cloudflare.com/ajax/libs/cloudinary-jquery/2.12.3/cloudinary-jquery.min.js"
       type="text/javascript"
     ></script>
+    <link
+      rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css"
+    />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
 
     <style></style>
   </head>
@@ -22,64 +27,121 @@
 
     <br />
     <br />
-    <p>Background Image: </p>
+    <p>Background Image:</p>
     <input id="image1" type="text" value="office-background_ol9cdy" />
 
     <br />
-    <p>Image Overlay: </p>
+    <p>Image Overlay:</p>
     <input
       id="image2"
       type="text"
-      value="https://res.cloudinary.com/imageeditor/image/upload/v1657257782/cld-sample.jpg"
+      value="https://res.cloudinary.com/imageeditor/image/upload/w_200,h_200/v1657257782/cld-sample.jpg"
     />
     <br />
-    <p>Text Overlay: </p>
-    <input
-      id="text1"
-      type="text"
-      value="This Zoots !"
-    />
+    <p>Text Overlay:</p>
+    <input id="text1" type="text" value="This Zoots !" />
     <br />
-    
+    <br />
+
     <input
       id="checkLocation"
       type="button"
-      value="Check Location"
+      value="Load Changes"
       rows="4"
       cols="50"
       onClick="checkLocation()"
     />
 
     <br />
-    <p>Debug: </p>
+    <p>Debug:</p>
     <textarea id="coordinates" type="textarea" cols="40" rows="5"> </textarea>
     <br />
     <br />
     <a id="outputlink" href=""></a>
     <br />
     <br />
-    <div style="position:absolute; top: 8px; left : 700px; height:500px; border: 1px solid #000000" >
-    <image id="output" src=""  />
+    <div
+      style="
+        position: absolute;
+        top: 8px;
+        left: 700px;
+        height: 500px;
+        border: 1px solid #000000;
+      "
+    >
+      <image id="output" src="" />
+    </div>
+
+    <div class="row">
+      <button id="button1" onclick="CopyToClipboard('sourcecode')">
+        Click to copy
+      </button>
+
+      <div class="col-md-12">
+        <pre><code id="sourcecode" class="python" style = "max-height:300px">
+
+      </code></pre>
+      </div>
     </div>
 
     <!-- Create a new canvas with Fabric and add objects to it -->
     <script>
+      String.prototype.format = function (args) {
+    var text = this
+    for(var attr in args){
+        text = text.split('${' + attr + '}').join(args[attr]);
+    }
+    return text
+};
+      /**
+       * Item name is unique
+       */
+      fabric.Canvas.prototype.getItemByName = function (name) {
+        var object = null,
+          objects = this.getObjects();
+
+        for (var i = 0, len = this.size(); i < len; i++) {
+          if (objects[i].name && objects[i].name === name) {
+            object = objects[i];
+            break;
+          }
+        }
+
+        return object;
+      };
       $.cloudinary.config({ cloud_name: "imageeditor", secure: true });
 
       document.getElementById("coordinates").value = "";
       background_image = $.cloudinary.image(
-        document.getElementById("image1").value
+        document.getElementById("image1").value,
+        { width: 627, crop: "scale" }
       )[0];
 
       const myImageUrl = background_image.src;
 
       var canvas = new fabric.Canvas("canvas1");
-      canvas.setZoom(1);
-      canvas.setWidth(627 * canvas.getZoom());
-      canvas.setHeight(500 * canvas.getZoom());
+      canvas.setWidth(627);
+      canvas.setHeight(500);
+
+      function get_height(name) {
+        if (parseInt(canvas.getItemByName(name).cacheHeight) == 256) {
+          return parseInt(canvas.getItemByName(name).height);
+        } else {
+          return parseInt(canvas.getItemByName(name).cacheHeight);
+        }
+      }
+
+      function get_width(name) {
+        if (parseInt(canvas.getItemByName(name).cacheWidth) == 256) {
+          return parseInt(canvas.getItemByName(name).width);
+        } else {
+          return parseInt(canvas.getItemByName(name).cacheWidth);
+        }
+      }
 
       function checkLocation() {
-        document.getElementById("output").src = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921"
+        document.getElementById("output").src =
+          "https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921";
         value = "";
         canvas.forEachObject(function (obj) {
           value += parseInt(obj.left) + "," + parseInt(obj.top) + "\n";
@@ -91,10 +153,10 @@
         output_image_url = $.cloudinary
           .imageTag(document.getElementById("image1").value)
           .transformation()
-          .height(parseInt(canvas.getObjects()[0].cacheHeight/2))
-          .width(parseInt(canvas.getObjects()[0].cacheWidth/2))
+          .height(get_height("image1"))
+          .width(get_width("image1"))
           .gravity("north_west")
-          .crop("scale")
+          .crop("fill")
           .chain()
           .overlay(
             new cloudinary.TextLayer()
@@ -106,18 +168,18 @@
           .width(250)
           .crop("fit")
           .gravity("north_west")
-          .x(parseInt(canvas.getObjects()[2].left))
-          .y(parseInt(canvas.getObjects()[2].top))
+          .x(parseInt(canvas.getItemByName("text1").left))
+          .y(parseInt(canvas.getItemByName("text1").top))
           .chain()
           .overlay(
             new cloudinary.FetchLayer().url(
-                  document.getElementById("image2").value
-                )
+              document.getElementById("image2").value
+            )
           )
-          .x(parseInt(canvas.getObjects()[1].left))
-          .y(parseInt(canvas.getObjects()[1].top))
-          .height(parseInt(canvas.getObjects()[1].cacheHeight/2))
-          .width(parseInt(canvas.getObjects()[1].cacheWidth/2))
+          .x(parseInt(canvas.getItemByName("image2").left))
+          .y(parseInt(canvas.getItemByName("image2").top))
+          .height(get_height("image2"))
+          .width(get_width("image2"))
           .gravity("north_west")
           .crop("scale")
           .toHtml()
@@ -126,17 +188,37 @@
         document.getElementById("output").src = output_image_url;
         document.getElementById("outputlink").href = output_image_url;
         document.getElementById("outputlink").textContent = output_image_url;
+
+        $.ajax({
+          url: "script.py",
+        }).done(function (response) {
+          
+          $("#sourcecode").html(response.format({
+              "background" : document.getElementById("image1").value,
+              "background_width":get_width("image1"),
+              "image_url" : document.getElementById("image2").value,
+              "image_x":parseInt(canvas.getItemByName("image2").left),
+              "image_y":parseInt(canvas.getItemByName("image2").top),
+              "image_width":get_width("image2"),
+              "image_height":get_height("image2"),
+              "text" : document.getElementById("text1").value,
+              "text_x":parseInt(canvas.getItemByName("text1").left),
+              "text_y":parseInt(canvas.getItemByName("text1").top)
+
+
+              
+            }
+          ))
+        });
       }
 
       // Add our image from URL onto canvas
       fabric.Image.fromURL(myImageUrl, function (aImg) {
-        // Scale down our image size
         aImg.set({
           left: 0,
           top: 0,
-        
+          name: "image1",
         });
-        aImg.scaleToWidth(canvas.width);
         //aImg.scale((1/canvas.getZoom()));
         canvas.add(aImg);
       });
@@ -147,29 +229,48 @@
         function (aImg) {
           // Scale down our image size
           aImg.set({
-            left: 154,
-            top: 273,
+            left: 175,
+            top: 200,
+            name: "image2",
           });
-          aImg.scaleToWidth(200);
           canvas.add(aImg);
 
           text = new fabric.Text(document.getElementById("text1").value, {
             fontFamily: "Delicious_500",
             left: 157,
             top: 433,
+            name: "text1",
           });
 
           canvas.add(text);
-
         }
       );
 
-      var canvasModifiedCallback = function() {
-        checkLocation()
-        };
+      var canvasModifiedCallback = function () {
+        checkLocation();
+      };
 
-      canvas.on('object:moving', canvasModifiedCallback);
-      setTimeout(function() { checkLocation(); }, 1000);
+      canvas.on("object:moving", canvasModifiedCallback);
+      canvas.on("object:scaling", canvasModifiedCallback);
+      setTimeout(function () {
+        checkLocation();
+      }, 1000);
+
+      function CopyToClipboard(containerid) {
+        if (document.selection) {
+          var range = document.body.createTextRange();
+          range.moveToElementText(document.getElementById(containerid));
+          range.select().createTextRange();
+          document.execCommand("copy");
+        } else if (window.getSelection) {
+          var range = document.createRange();
+          range.selectNode(document.getElementById(containerid));
+          window.getSelection().addRange(range);
+          document.execCommand("copy");
+          alert("Text has been copied, now paste in the text-area");
+        }
+      }
+      hljs.highlightAll();
     </script>
   </body>
 </html>
