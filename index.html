@@ -86,6 +86,7 @@
 
     <!-- Create a new canvas with Fabric and add objects to it -->
     <script>
+    has_loaded = false
       String.prototype.format = function (args) {
     var text = this
     for(var attr in args){
@@ -124,19 +125,11 @@
       canvas.setHeight(500);
 
       function get_height(name) {
-        if (parseInt(canvas.getItemByName(name).cacheHeight) == 256) {
-          return parseInt(canvas.getItemByName(name).height);
-        } else {
-          return parseInt(canvas.getItemByName(name).cacheHeight);
-        }
+          return parseInt(canvas.getItemByName(name).getScaledHeight());
       }
 
       function get_width(name) {
-        if (parseInt(canvas.getItemByName(name).cacheWidth) == 256) {
-          return parseInt(canvas.getItemByName(name).width);
-        } else {
-          return parseInt(canvas.getItemByName(name).cacheWidth);
-        }
+          return parseInt(canvas.getItemByName(name).getScaledWidth());
       }
 
       function checkLocation() {
@@ -271,6 +264,13 @@
         }
       }
       hljs.highlightAll();
+
+      $( document ).ready(function() {
+        setTimeout(function () {
+          has_loaded = true
+        }, 1000);
+        
+    });
     </script>
   </body>
 </html>
